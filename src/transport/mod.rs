@@ -1,7 +1,8 @@
 pub mod shmem;
-mod smoltcp;
+// mod smoltcp;
+pub mod stdtcp;
 
-pub use self::smoltcp::TCPTransport;
+// pub use self::smoltcp::TCPTransport;
 pub use shmem::transport::ShmemTransport;
 
 use crate::rpc::{RPCError, RPCHeader};
