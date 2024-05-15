@@ -58,7 +58,7 @@ impl<'a> Transport for ShmemTransport<'a> {
         QUEUE_ENTRY_SIZE
     }
 
-    fn send_msg(&self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<(), RPCError> {
+    fn send_msg(&mut self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<(), RPCError> {
         let mut pointers: [&[u8]; 7] = [&[1]; 7];
         pointers[0] = unsafe { &hdr.as_bytes()[..] };
         let mut index = 1;
@@ -81,7 +81,7 @@ impl<'a> Transport for ShmemTransport<'a> {
         Ok(self.tx.try_send(&pointers[..payload.len() + 1]))
     }
 
-    fn recv_msg(&self, hdr: &mut RPCHeader, payload: &mut [&mut [u8]]) -> Result<(), RPCError> {
+    fn recv_msg(&mut self, hdr: &mut RPCHeader, payload: &mut [&mut [u8]]) -> Result<(), RPCError> {
         if payload.is_empty() {
             self.rx.recv(&mut [unsafe { &mut hdr.as_mut_bytes()[..] }]);
             return Ok(());

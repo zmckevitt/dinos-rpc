@@ -1,11 +1,12 @@
 use crate::transport::{RPCError, RPCHeader, Transport};
 
-use std::net::TcpListener;
+use std::io::{self, Read, Write};
+use std::net::{TcpListener, TcpStream};
 
 const RX_BUF_LEN: usize = 8192;
 const TX_BUF_LEN: usize = 8192;
 
-impl Transport for TcpListener {
+impl Transport for TcpStream {
     fn max_send(&self) -> usize {
         RX_BUF_LEN
     }
@@ -14,7 +15,12 @@ impl Transport for TcpListener {
         TX_BUF_LEN
     }
 
-    fn send_msg(&self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<(), RPCError> {
+    // TODO: convert TcpStream errors to RPCErrors and do checking
+    fn send_msg(&mut self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<(), RPCError> {
+        self.write(&unsafe { hdr.as_bytes() }[..]);
+        for p in payload {
+            self.write(p);
+        }
         Ok(())
     }
 
@@ -22,7 +28,9 @@ impl Transport for TcpListener {
         Ok(true)
     }
 
-    fn recv_msg(&self, hdr: &mut RPCHeader, payload: &mut [&mut [u8]]) -> Result<(), RPCError> {
+    fn recv_msg(&mut self, hdr: &mut RPCHeader, payload: &mut [&mut [u8]]) -> Result<(), RPCError> {
+        self.read(unsafe { hdr.as_mut_bytes() });
+        let expected_bytes = hdr.msg_len as usize;
         Ok(())
     }
 
