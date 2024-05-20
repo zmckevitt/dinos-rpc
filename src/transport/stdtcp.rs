@@ -15,30 +15,40 @@ impl Transport for TcpStream {
         TX_BUF_LEN
     }
 
-    // TODO: convert TcpStream errors to RPCErrors and do checking
     fn send_msg(&mut self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<(), RPCError> {
-        self.write(&unsafe { hdr.as_bytes() }[..]);
+        match self.write(&unsafe { hdr.as_bytes() }[..]) {
+            Err(_) => return Err(RPCError::TransportError),
+            Ok(_) => {}
+        };
         for p in payload {
-            self.write(p);
+            match self.write(p) {
+                Err(_) => return Err(RPCError::TransportError),
+                Ok(_) => {}
+            };
         }
         Ok(())
     }
 
-    fn try_send_msg(&self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<bool, RPCError> {
+    fn try_send_msg(&mut self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<bool, RPCError> {
+        self.send_msg(hdr, payload)?;
         Ok(true)
     }
 
     fn recv_msg(&mut self, hdr: &mut RPCHeader, payload: &mut [&mut [u8]]) -> Result<(), RPCError> {
-        self.read(unsafe { hdr.as_mut_bytes() });
+        match self.read(unsafe { hdr.as_mut_bytes() }) {
+            Err(_) => return Err(RPCError::TransportError),
+            Ok(_) => {}
+        };
         let expected_bytes = hdr.msg_len as usize;
         Ok(())
     }
 
     fn try_recv_msg(
-        &self,
+        &mut self,
         hdr: &mut RPCHeader,
         payload: &mut [&mut [u8]],
     ) -> Result<bool, RPCError> {
+        self.recv_msg(hdr, payload)?;
         Ok(true)
     }
 

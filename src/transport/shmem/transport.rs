@@ -70,7 +70,7 @@ impl<'a> Transport for ShmemTransport<'a> {
         Ok(())
     }
 
-    fn try_send_msg(&self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<bool, RPCError> {
+    fn try_send_msg(&mut self, hdr: &RPCHeader, payload: &[&[u8]]) -> Result<bool, RPCError> {
         let mut pointers: [&[u8]; 7] = [&[1]; 7];
         pointers[0] = unsafe { &hdr.as_bytes()[..] };
         let mut index = 1;
@@ -107,7 +107,7 @@ impl<'a> Transport for ShmemTransport<'a> {
     }
 
     fn try_recv_msg(
-        &self,
+        &mut self,
         hdr: &mut RPCHeader,
         payload: &mut [&mut [u8]],
     ) -> Result<bool, RPCError> {
