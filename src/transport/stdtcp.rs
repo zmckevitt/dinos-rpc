@@ -36,11 +36,37 @@ impl Transport for TcpStream {
 
     fn recv_msg(&mut self, hdr: &mut RPCHeader, payload: &mut [&mut [u8]]) -> Result<(), RPCError> {
         match self.read(unsafe { hdr.as_mut_bytes() }) {
-            Err(_) => return Err(RPCError::TransportError),
+            Err(_) => { return Err(RPCError::TransportError) },
             Ok(_) => {}
         };
+
         let expected_bytes = hdr.msg_len as usize;
-        Ok(())
+        let max_recv_data = payload.iter().fold(0, |acc, x| acc + x.len());
+        if expected_bytes > max_recv_data {
+            // Not enough space to store all message data
+            Err(RPCError::InternalError)
+        } else if expected_bytes == 0 {
+            Ok(())
+        } else {
+            // Receive until expected data is fully received
+            let mut recv_count = 0;
+            for p in payload.iter_mut() {
+                if recv_count + p.len() > expected_bytes {
+                    match self.read(&mut p[..(expected_bytes - recv_count)]) {
+                        Err(_) => { return Err(RPCError::TransportError) },
+                        _ => {},
+                    }
+                    return Ok(());
+                } else {
+                    recv_count += p.len();
+                    match self.read(p) {
+                        Err(_) => { return Err(RPCError::TransportError) },
+                        _ => {},
+                    }
+                }
+            }
+            Ok(())
+        }
     }
 
     fn try_recv_msg(
