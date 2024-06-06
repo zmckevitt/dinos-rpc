@@ -1,10 +1,10 @@
 pub mod shmem;
 pub use shmem::transport::ShmemTransport;
 
-#[cfg(feature = "no_std")]
+#[cfg(feature = "dinos")]
 mod smoltcp;
 
-#[cfg(feature = "no_std")]
+#[cfg(feature = "dinos")]
 pub use self::smoltcp::TCPTransport;
 
 #[cfg(feature = "std")]

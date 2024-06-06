@@ -11,7 +11,7 @@ extern crate abomonation;
 extern crate alloc;
 extern crate core2;
 
-#[cfg(feature = "no_std")]
+#[cfg(feature = "dinos")]
 extern crate smoltcp;
 
 #[cfg(feature = "dinos")]
