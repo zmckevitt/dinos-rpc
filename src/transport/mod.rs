@@ -10,6 +10,9 @@ pub use self::smoltcp::TCPTransport;
 #[cfg(feature = "std")]
 pub mod stdtcp;
 
+#[cfg(feature = "std")]
+pub mod uds;
+
 use crate::rpc::{RPCError, RPCHeader};
 
 pub trait Transport {
